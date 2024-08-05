@@ -10,9 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check branch name
-        if: "!startsWith(github.ref, 'refs/heads/test-star')"
         run: |
-          echo "Branch name is invalid. Deleting branch..."
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
-          curl -X DELETE -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
+          if [[ "$BRANCH_NAME" != test-star* ]]; then
+            echo "Branch name is invalid. Deleting branch..."
+            curl -X DELETE -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
+          else
+            echo "Branch name is valid."
+          fi
