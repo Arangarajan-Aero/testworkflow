@@ -10,12 +10,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check branch name
+        id: check
         run: |
           BRANCH_NAME=${GITHUB_REF#refs/heads/}
           if [[ "$BRANCH_NAME" != test-star* ]]; then
             echo "Branch name is invalid. Deleting branch..."
             curl -X DELETE -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             https://api.github.com/repos/${{ github.repository }}/git/refs/heads/$BRANCH_NAME
+            echo "::set-output name=is_invalid::true"
           else
-            echo "Branch name is valid."
-          fi
+            echo "::set-output name=is_invalid::false"
+
+      - name: Fail if invalid
+        if: steps.check.outputs.is_invalid == 'true'
+        run: exit 1
